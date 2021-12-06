@@ -9,13 +9,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List tictactoe_grid = [
+  bool _isBlockTurn = true;
+  int _total_games = 1;
+  int _block_win = 0;
+  int _circle_win = 0;
+
+  final List _tictactoe_grid = [
     ['', '', ''],
     ['', '', ''],
     ['', '', ''],
   ];
 
-  Map<int, List<int>> tictactoe_map = {
+  final Map<int, List<int>> _tictactoe_map = const {
     0: [0, 0],
     1: [0, 1],
     2: [0, 2],
@@ -26,6 +31,47 @@ class _HomePageState extends State<HomePage> {
     7: [2, 1],
     8: [2, 2],
   };
+
+  void addBlock_Circle(int index, String turn) {
+    setState(() {
+      _tictactoe_grid[_tictactoe_map[index]![0]][_tictactoe_map[index]![1]] =
+          turn;
+      _isBlockTurn = !_isBlockTurn;
+    });
+    check_draw();
+  }
+
+  bool is_block(String turn) {
+    return turn == "X";
+  }
+
+  void check_draw() {
+    if (!check_win() &&
+        _tictactoe_grid.where((element) => element.contains('')).isEmpty) {
+      print("DRAW");
+    }
+  }
+
+  bool check_win() {
+    const List<List<int>> _possibilities = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+    ];
+
+    for (int i = 0; i < _possibilities.length; i++) {
+      return _tictactoe_grid[_possibilities[i][0]] ==
+          _tictactoe_grid[_possibilities[i][1]];
+    }
+    // _possibilities.forEach((element) {
+    //  });
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +85,9 @@ class _HomePageState extends State<HomePage> {
           iconSize: 30,
           onPressed: () {},
         ),
-        title: const Text("block's turn"),
+        title: _isBlockTurn
+            ? const Text("block's turn")
+            : const Text("circle's turn"),
       ),
       body: SafeArea(
         child: Column(
@@ -60,10 +108,11 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (ctx, index) {
                   return InkWell(
                     onTap: () {
-                      setState(() {
-                        tictactoe_grid[tictactoe_map[index]![0]]
-                            [tictactoe_map[index]![1]] = "X";
-                      });
+                      if (_isBlockTurn) {
+                        addBlock_Circle(index, "X");
+                      } else {
+                        addBlock_Circle(index, "0");
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.all(25),
@@ -78,14 +127,20 @@ class _HomePageState extends State<HomePage> {
                           )
                         ],
                       ),
-                      child: tictactoe_grid[tictactoe_map[index]![0]]
-                                  [tictactoe_map[index]![1]] !=
+                      child: _tictactoe_grid[_tictactoe_map[index]![0]]
+                                  [_tictactoe_map[index]![1]] !=
                               ""
                           ? Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                    index % 2 == 0 ? 5 : 100),
-                                color: index % 2 == 0
+                                borderRadius: BorderRadius.circular(is_block(
+                                        _tictactoe_grid[
+                                                _tictactoe_map[index]![0]]
+                                            [_tictactoe_map[index]![1]])
+                                    ? 5
+                                    : 100),
+                                color: is_block(_tictactoe_grid[
+                                            _tictactoe_map[index]![0]]
+                                        [_tictactoe_map[index]![1]])
                                     ? Colors.deepPurple
                                     : Colors.pink,
                               ),
@@ -121,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                             height: 5,
                           ),
                           Text(
-                            "5",
+                            _block_win.toString(),
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 36,
@@ -146,7 +201,7 @@ class _HomePageState extends State<HomePage> {
                             height: 5,
                           ),
                           Text(
-                            "2",
+                            _total_games.toString(),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 25,
@@ -178,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                             height: 5,
                           ),
                           Text(
-                            "1",
+                            _circle_win.toString(),
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 36,
