@@ -9,6 +9,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List tictactoe_grid = [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', ''],
+  ];
+
+  Map<int, List<int>> tictactoe_map = {
+    0: [0, 0],
+    1: [0, 1],
+    2: [0, 2],
+    3: [1, 0],
+    4: [1, 1],
+    5: [1, 2],
+    6: [2, 0],
+    7: [2, 1],
+    8: [2, 2],
+  };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,25 +58,39 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSpacing: 15,
                 ),
                 itemBuilder: (ctx, index) {
-                  return Container(
-                    padding: const EdgeInsets.all(25),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25282d),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0xFF1b1b1b),
-                          blurRadius: 5,
-                          spreadRadius: 1,
-                        )
-                      ],
-                    ),
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        tictactoe_grid[tictactoe_map[index]![0]]
+                            [tictactoe_map[index]![1]] = "X";
+                      });
+                    },
                     child: Container(
+                      padding: const EdgeInsets.all(25),
                       decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(index % 2 == 0 ? 5 : 100),
-                        color: index % 2 == 0 ? Colors.deepPurple : Colors.pink,
+                        color: const Color(0xFF25282d),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0xFF1b1b1b),
+                            blurRadius: 5,
+                            spreadRadius: 1,
+                          )
+                        ],
                       ),
+                      child: tictactoe_grid[tictactoe_map[index]![0]]
+                                  [tictactoe_map[index]![1]] !=
+                              ""
+                          ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                    index % 2 == 0 ? 5 : 100),
+                                color: index % 2 == 0
+                                    ? Colors.deepPurple
+                                    : Colors.pink,
+                              ),
+                            )
+                          : Container(),
                     ),
                   );
                 },
