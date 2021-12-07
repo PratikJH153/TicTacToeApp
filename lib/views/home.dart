@@ -10,17 +10,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isBlockTurn = true;
-  int _total_games = 1;
-  int _block_win = 0;
-  int _circle_win = 0;
+  int _totalGames = 0;
+  int _blockWin = 0;
+  int _circleWin = 0;
+  bool _gameOver = false;
 
-  final List _tictactoe_grid = [
+  List _tictactoeGrid = [
     ['', '', ''],
     ['', '', ''],
     ['', '', ''],
   ];
 
-  final Map<int, List<int>> _tictactoe_map = const {
+  final Map<int, List<int>> _tictactoeMap = const {
     0: [0, 0],
     1: [0, 1],
     2: [0, 2],
@@ -32,27 +33,42 @@ class _HomePageState extends State<HomePage> {
     8: [2, 2],
   };
 
-  void addBlock_Circle(int index, String turn) {
-    setState(() {
-      _tictactoe_grid[_tictactoe_map[index]![0]][_tictactoe_map[index]![1]] =
-          turn;
-      _isBlockTurn = !_isBlockTurn;
-    });
-    check_draw();
-  }
-
-  bool is_block(String turn) {
-    return turn == "X";
-  }
-
-  void check_draw() {
-    if (!check_win() &&
-        _tictactoe_grid.where((element) => element.contains('')).isEmpty) {
-      print("DRAW");
+  void addBlockCircle(int index, String turn) {
+    if (!_gameOver) {
+      setState(() {
+        _tictactoeGrid[_tictactoeMap[index]![0]][_tictactoeMap[index]![1]] =
+            turn;
+        _isBlockTurn = !_isBlockTurn;
+      });
+      checkDraw();
     }
   }
 
-  bool check_win() {
+  bool isBlock(String turn) {
+    return turn == "X";
+  }
+
+  void checkDraw() {
+    if (!checkWin() &&
+        _tictactoeGrid.where((element) => element.contains('')).isEmpty) {
+      setState(() {
+        _gameOver = !_gameOver;
+      });
+    }
+  }
+
+  void _playAgain() {
+    setState(() {
+      _gameOver = !_gameOver;
+      _tictactoeGrid = [
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', ''],
+      ];
+    });
+  }
+
+  bool checkWin() {
     const List<List<int>> _possibilities = [
       [0, 1, 2],
       [3, 4, 5],
@@ -65,11 +81,26 @@ class _HomePageState extends State<HomePage> {
     ];
 
     for (int i = 0; i < _possibilities.length; i++) {
-      return _tictactoe_grid[_possibilities[i][0]] ==
-          _tictactoe_grid[_possibilities[i][1]];
+      var x = _tictactoeGrid[_tictactoeMap[_possibilities[i][0]]![0]]
+          [_tictactoeMap[_possibilities[i][0]]![1]];
+      var y = _tictactoeGrid[_tictactoeMap[_possibilities[i][1]]![0]]
+          [_tictactoeMap[_possibilities[i][1]]![1]];
+      var z = _tictactoeGrid[_tictactoeMap[_possibilities[i][2]]![0]]
+          [_tictactoeMap[_possibilities[i][2]]![1]];
+      if (x == "X" && y == "X" && z == "X") {
+        setState(() {
+          _gameOver = !_gameOver;
+          _blockWin += 1;
+          _totalGames += 1;
+        });
+      } else if (x == "0" && y == "0" && z == "0") {
+        setState(() {
+          _gameOver = !_gameOver;
+          _circleWin += 1;
+          _totalGames += 1;
+        });
+      }
     }
-    // _possibilities.forEach((element) {
-    //  });
     return false;
   }
 
@@ -109,9 +140,9 @@ class _HomePageState extends State<HomePage> {
                   return InkWell(
                     onTap: () {
                       if (_isBlockTurn) {
-                        addBlock_Circle(index, "X");
+                        addBlockCircle(index, "X");
                       } else {
-                        addBlock_Circle(index, "0");
+                        addBlockCircle(index, "0");
                       }
                     },
                     child: Container(
@@ -127,20 +158,19 @@ class _HomePageState extends State<HomePage> {
                           )
                         ],
                       ),
-                      child: _tictactoe_grid[_tictactoe_map[index]![0]]
-                                  [_tictactoe_map[index]![1]] !=
+                      child: _tictactoeGrid[_tictactoeMap[index]![0]]
+                                  [_tictactoeMap[index]![1]] !=
                               ""
                           ? Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(is_block(
-                                        _tictactoe_grid[
-                                                _tictactoe_map[index]![0]]
-                                            [_tictactoe_map[index]![1]])
+                                borderRadius: BorderRadius.circular(isBlock(
+                                        _tictactoeGrid[_tictactoeMap[index]![0]]
+                                            [_tictactoeMap[index]![1]])
                                     ? 5
                                     : 100),
-                                color: is_block(_tictactoe_grid[
-                                            _tictactoe_map[index]![0]]
-                                        [_tictactoe_map[index]![1]])
+                                color: isBlock(
+                                        _tictactoeGrid[_tictactoeMap[index]![0]]
+                                            [_tictactoeMap[index]![1]])
                                     ? Colors.deepPurple
                                     : Colors.pink,
                               ),
@@ -152,101 +182,122 @@ class _HomePageState extends State<HomePage> {
                 itemCount: 9,
               ),
             ),
-            Expanded(
-              flex: 1,
-              child: Container(
-                padding: const EdgeInsets.only(top: 14),
-                color: const Color(0xFF25282d),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 30.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            "block",
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 16,
+            const Spacer(),
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(top: 14, bottom: 10),
+                  color: const Color(0xFF25282d),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              "block",
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            _block_win.toString(),
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 36,
-                              fontWeight: FontWeight.w300,
+                            const SizedBox(
+                              height: 5,
                             ),
-                          ),
-                        ],
+                            Text(
+                              _blockWin.toString(),
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 36,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 30.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            "games",
-                            style: TextStyle(
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              "games",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              _totalGames.toString(),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 25,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Container(
+                              height: 3,
+                              width: 40,
                               color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            _total_games.toString(),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 25,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Container(
-                            height: 3,
-                            width: 40,
-                            color: Colors.grey[600],
-                          )
-                        ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 30.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            "circle",
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 16,
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              "circle",
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            _circle_win.toString(),
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 36,
-                              fontWeight: FontWeight.w300,
+                            const SizedBox(
+                              height: 5,
                             ),
-                          ),
-                        ],
+                            Text(
+                              _circleWin.toString(),
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 36,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            )
+                if (_gameOver)
+                  InkWell(
+                    onTap: () {
+                      _playAgain();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      color: Colors.blue,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(15),
+                      child: const Text(
+                        "Play Again?",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
